@@ -302,32 +302,33 @@ function speakNova(text) {
 
 	const voices = window.speechSynthesis.getVoices();
 
-	const femaleHindiVoice =
+	// Male Hindi voice ko priority
+	const maleHindiVoice =
 		voices.find(
 			voice =>
 				/hi-IN/i.test(voice.lang) &&
-				/(female|woman|girl|google hindi)/i.test(voice.name)
+				/(male|man|boy|google hindi)/i.test(voice.name)
 		) ||
 		voices.find(
 			voice => /hi-IN/i.test(voice.lang)
 		);
 
-	const femaleVoice =
-		femaleHindiVoice ||
+	const maleVoice =
+		maleHindiVoice ||
 		voices.find(
 			voice =>
-				/(female|woman|girl)/i.test(voice.name)
+				/(male|man|boy)/i.test(voice.name)
 		);
 
 	const utterance = new SpeechSynthesisUtterance(cleanText);
 
-	if (femaleVoice) {
-		utterance.voice = femaleVoice;
+	if (maleVoice) {
+		utterance.voice = maleVoice;
 	}
 
 	utterance.lang = "hi-IN";
 	utterance.rate = 0.95;
-	utterance.pitch = 1.15;
+	utterance.pitch = 0.85;
 	utterance.volume = 1;
 
 	window.speechSynthesis.speak(utterance);
