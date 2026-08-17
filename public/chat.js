@@ -371,4 +371,4 @@ function consumeSseEvents(buffer) {
 		events,
 		buffer: normalized,
 	};
-} in
+}
