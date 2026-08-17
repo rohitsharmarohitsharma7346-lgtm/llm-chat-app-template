@@ -287,6 +287,7 @@ async function sendMessage() {
 
 function speakNova(text) {
 	if (!("speechSynthesis" in window)) {
+		console.log("Speech synthesis supported nahi hai.");
 		return;
 	}
 
@@ -299,15 +300,44 @@ function speakNova(text) {
 
 	if (!cleanText) return;
 
+	const voices = window.speechSynthesis.getVoices();
+
+	const femaleHindiVoice =
+		voices.find(
+			voice =>
+				/hi-IN/i.test(voice.lang) &&
+				/(female|woman|girl|google hindi)/i.test(voice.name)
+		) ||
+		voices.find(
+			voice => /hi-IN/i.test(voice.lang)
+		);
+
+	const femaleVoice =
+		femaleHindiVoice ||
+		voices.find(
+			voice =>
+				/(female|woman|girl)/i.test(voice.name)
+		);
+
 	const utterance = new SpeechSynthesisUtterance(cleanText);
 
+	if (femaleVoice) {
+		utterance.voice = femaleVoice;
+	}
+
 	utterance.lang = "hi-IN";
-	utterance.rate = 1;
-	utterance.pitch = 1;
+	utterance.rate = 0.95;
+	utterance.pitch = 1.15;
+	utterance.volume = 1;
 
 	window.speechSynthesis.speak(utterance);
 }
 
+if ("speechSynthesis" in window) {
+	window.speechSynthesis.onvoiceschanged = function () {
+		window.speechSynthesis.getVoices();
+	};
+}
 
 /* -----------------------------
    ADD MESSAGE
