@@ -13,7 +13,6 @@ import { Env, ChatMessage } from "./types";
 // https://developers.cloudflare.com/workers-ai/models/
 const MODEL_ID = "@cf/meta/llama-3.1-8b-instruct-fp8";
 
-// Default system prompt
 /**
  * NOVA AI 🤖
  * Sachin's personal AI assistant
