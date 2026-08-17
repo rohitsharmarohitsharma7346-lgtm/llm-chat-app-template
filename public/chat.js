@@ -42,6 +42,25 @@ sendButton.addEventListener("click", sendMessage);
  */
 async function sendMessage() {
 	const message = userInput.value.trim();
+	const text = message.toLowerCase();
+
+if (
+	text.includes("creator") ||
+	text.includes("created") ||
+	text.includes("kisne banaya") ||
+	text.includes("kisne bnaya") ||
+	text.includes("banaya kisne")
+) {
+	addMessageToChat(
+		"assistant",
+		"Mujhe Sachin ne banaya hai. 😎🤖"
+	);
+	isProcessing = false;
+	userInput.disabled = false;
+	sendButton.disabled = false;
+	userInput.focus();
+	return;
+}
 
 	// Don't send empty messages
 	if (message === "" || isProcessing) return;
