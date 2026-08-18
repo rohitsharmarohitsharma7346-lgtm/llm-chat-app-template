@@ -13,7 +13,7 @@ let chatHistory = [
 	{
 		role: "assistant",
 		content:
-			"Hello! Main Nova hoon 🤖 — Sachin ka banaya hua personal AI assistant. 😎🔥",
+			"Hello! Main Nova Ai hoon 🤖 — Sachin ka banaya hua personal AI assistant. 😎🔥",
 	},
 ];
 
