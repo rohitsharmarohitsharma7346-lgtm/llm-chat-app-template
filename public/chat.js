@@ -9,6 +9,23 @@ const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
 const micButton = document.getElementById("mic-button");
 
+const voiceButton = document.getElementById("voice-button");
+
+let voiceEnabled = true;
+
+voiceButton.addEventListener("click", function () {
+	voiceEnabled = !voiceEnabled;
+
+	if (voiceEnabled) {
+		voiceButton.textContent = "🔊";
+		voiceButton.title = "Nova voice ON";
+	} else {
+		voiceButton.textContent = "🔇";
+		voiceButton.title = "Nova voice OFF";
+		window.speechSynthesis.cancel();
+	}
+});
+
 let chatHistory = [
 	{
 		role: "assistant",
