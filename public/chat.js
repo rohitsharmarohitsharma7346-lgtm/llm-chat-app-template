@@ -303,6 +303,7 @@ async function sendMessage() {
 ----------------------------- */
 
 function speakNova(text) {
+	if (!voiceEnabled) return;
 	if (!("speechSynthesis" in window)) {
 		console.log("Speech synthesis supported nahi hai.");
 		return;
