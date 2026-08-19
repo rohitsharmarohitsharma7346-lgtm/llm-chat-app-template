@@ -1,6 +1,7 @@
 /**
  * NOVA AI 🤖
  * Frontend chat + voice controls
+ * Online + Offline Mode
  */
 
 const chatMessages = document.getElementById("chat-messages");
@@ -8,10 +9,13 @@ const userInput = document.getElementById("user-input");
 const sendButton = document.getElementById("send-button");
 const typingIndicator = document.getElementById("typing-indicator");
 const micButton = document.getElementById("mic-button");
-
 const voiceButton = document.getElementById("voice-button");
 
+const offlineButton = document.getElementById("offline-button");
+const modeStatus = document.getElementById("mode-status");
+
 let voiceEnabled = true;
+let offlineMode = false;
 
 voiceButton.addEventListener("click", function () {
 	voiceEnabled = !voiceEnabled;
@@ -26,6 +30,32 @@ voiceButton.addEventListener("click", function () {
 	}
 });
 
+
+/* -----------------------------
+   OFFLINE MODE
+----------------------------- */
+
+if (offlineButton) {
+	offlineButton.addEventListener("click", function () {
+		offlineMode = !offlineMode;
+
+		if (offlineMode) {
+			offlineButton.textContent = "💻 Offline Mode: ON";
+			offlineButton.classList.add("active");
+			modeStatus.textContent = "Local AI mode";
+		} else {
+			offlineButton.textContent = "💻 Offline Mode: OFF";
+			offlineButton.classList.remove("active");
+			modeStatus.textContent = "Online AI";
+		}
+	});
+}
+
+
+/* -----------------------------
+   CHAT HISTORY
+----------------------------- */
+
 let chatHistory = [
 	{
 		role: "assistant",
@@ -35,6 +65,7 @@ let chatHistory = [
 ];
 
 let isProcessing = false;
+
 
 /* -----------------------------
    TEXT INPUT
@@ -147,8 +178,34 @@ async function sendMessage() {
 	});
 
 	try {
+		/* -----------------------------
+		   OFFLINE MODE
+		----------------------------- */
+
+		if (offlineMode) {
+			const offlineReply =
+				"💻 Offline Mode ON hai bro. 😎\n\nLocal AI connection abhi next step mein connect karenge.";
+
+			addMessageToChat("assistant", offlineReply);
+
+			chatHistory.push({
+				role: "assistant",
+				content: offlineReply,
+			});
+
+			speakNova(offlineReply);
+
+			return;
+		}
+
+
+		/* -----------------------------
+		   ONLINE MODE
+		----------------------------- */
+
 		const assistantMessageEl = document.createElement("div");
-		assistantMessageEl.className = "message assistant-message";
+		assistantMessageEl.className =
+			"message assistant-message";
 		assistantMessageEl.innerHTML = "<p></p>";
 
 		chatMessages.appendChild(assistantMessageEl);
@@ -156,7 +213,8 @@ async function sendMessage() {
 		const assistantTextEl =
 			assistantMessageEl.querySelector("p");
 
-		chatMessages.scrollTop = chatMessages.scrollHeight;
+		chatMessages.scrollTop =
+			chatMessages.scrollHeight;
 
 		const response = await fetch("/api/chat", {
 			method: "POST",
@@ -185,14 +243,16 @@ async function sendMessage() {
 
 		const flushAssistantText = () => {
 			assistantTextEl.textContent = responseText;
-			chatMessages.scrollTop = chatMessages.scrollHeight;
+			chatMessages.scrollTop =
+				chatMessages.scrollHeight;
 		};
 
 		while (true) {
 			const { done, value } = await reader.read();
 
 			if (done) {
-				const parsed = consumeSseEvents(buffer + "\n\n");
+				const parsed =
+					consumeSseEvents(buffer + "\n\n");
 
 				for (const data of parsed.events) {
 					if (data === "[DONE]") break;
@@ -202,13 +262,19 @@ async function sendMessage() {
 
 						let content = "";
 
-						if (typeof jsonData.response === "string") {
-							content = jsonData.response;
-						} else if (
-							jsonData.choices?.[0]?.delta?.content
+						if (
+							typeof jsonData.response ===
+							"string"
 						) {
 							content =
-								jsonData.choices[0].delta.content;
+								jsonData.response;
+						} else if (
+							jsonData.choices?.[0]?.delta
+								?.content
+						) {
+							content =
+								jsonData.choices[0]
+									.delta.content;
 						}
 
 						if (content) {
@@ -230,7 +296,9 @@ async function sendMessage() {
 				stream: true,
 			});
 
-			const parsed = consumeSseEvents(buffer);
+			const parsed =
+				consumeSseEvents(buffer);
+
 			buffer = parsed.buffer;
 
 			for (const data of parsed.events) {
@@ -241,17 +309,24 @@ async function sendMessage() {
 				}
 
 				try {
-					const jsonData = JSON.parse(data);
+					const jsonData =
+						JSON.parse(data);
 
 					let content = "";
 
-					if (typeof jsonData.response === "string") {
-						content = jsonData.response;
-					} else if (
-						jsonData.choices?.[0]?.delta?.content
+					if (
+						typeof jsonData.response ===
+						"string"
 					) {
 						content =
-							jsonData.choices[0].delta.content;
+							jsonData.response;
+					} else if (
+						jsonData.choices?.[0]?.delta
+							?.content
+					) {
+						content =
+							jsonData.choices[0]
+								.delta.content;
 					}
 
 					if (content) {
@@ -275,7 +350,6 @@ async function sendMessage() {
 				content: responseText,
 			});
 
-			/* Nova speaks the answer */
 			speakNova(responseText);
 		}
 	} catch (error) {
@@ -304,8 +378,11 @@ async function sendMessage() {
 
 function speakNova(text) {
 	if (!voiceEnabled) return;
+
 	if (!("speechSynthesis" in window)) {
-		console.log("Speech synthesis supported nahi hai.");
+		console.log(
+			"Speech synthesis supported nahi hai.",
+		);
 		return;
 	}
 
@@ -318,27 +395,32 @@ function speakNova(text) {
 
 	if (!cleanText) return;
 
-	const voices = window.speechSynthesis.getVoices();
+	const voices =
+		window.speechSynthesis.getVoices();
 
-	// Male Hindi voice ko priority
 	const maleHindiVoice =
 		voices.find(
 			voice =>
 				/hi-IN/i.test(voice.lang) &&
-				/(male|man|boy|google hindi)/i.test(voice.name)
+				/(male|man|boy|google hindi)/i.test(
+					voice.name,
+				),
 		) ||
 		voices.find(
-			voice => /hi-IN/i.test(voice.lang)
+			voice => /hi-IN/i.test(voice.lang),
 		);
 
 	const maleVoice =
 		maleHindiVoice ||
 		voices.find(
 			voice =>
-				/(male|man|boy)/i.test(voice.name)
+				/(male|man|boy)/i.test(
+					voice.name,
+				),
 		);
 
-	const utterance = new SpeechSynthesisUtterance(cleanText);
+	const utterance =
+		new SpeechSynthesisUtterance(cleanText);
 
 	if (maleVoice) {
 		utterance.voice = maleVoice;
@@ -353,22 +435,27 @@ function speakNova(text) {
 }
 
 if ("speechSynthesis" in window) {
-	window.speechSynthesis.onvoiceschanged = function () {
-		window.speechSynthesis.getVoices();
-	};
+	window.speechSynthesis.onvoiceschanged =
+		function () {
+			window.speechSynthesis.getVoices();
+		};
 }
+
 
 /* -----------------------------
    ADD MESSAGE
 ----------------------------- */
 
 function addMessageToChat(role, content) {
-	const messageEl = document.createElement("div");
+	const messageEl =
+		document.createElement("div");
 
 	messageEl.className =
 		`message ${role}-message`;
 
-	const paragraph = document.createElement("p");
+	const paragraph =
+		document.createElement("p");
+
 	paragraph.textContent = content;
 
 	messageEl.appendChild(paragraph);
@@ -385,7 +472,8 @@ function addMessageToChat(role, content) {
 ----------------------------- */
 
 function consumeSseEvents(buffer) {
-	let normalized = buffer.replace(/\r/g, "");
+	let normalized =
+		buffer.replace(/\r/g, "");
 
 	const events = [];
 	let eventEndIndex;
@@ -398,22 +486,30 @@ function consumeSseEvents(buffer) {
 			normalized.slice(0, eventEndIndex);
 
 		normalized =
-			normalized.slice(eventEndIndex + 2);
+			normalized.slice(
+				eventEndIndex + 2,
+			);
 
-		const lines = rawEvent.split("\n");
+		const lines =
+			rawEvent.split("\n");
+
 		const dataLines = [];
 
 		for (const line of lines) {
 			if (line.startsWith("data:")) {
 				dataLines.push(
-					line.slice("data:".length).trimStart(),
+					line
+						.slice("data:".length)
+						.trimStart(),
 				);
 			}
 		}
 
 		if (dataLines.length === 0) continue;
 
-		events.push(dataLines.join("\n"));
+		events.push(
+			dataLines.join("\n"),
+		);
 	}
 
 	return {
